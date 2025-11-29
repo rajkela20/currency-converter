@@ -11,7 +11,7 @@ namespace CurrencyConverter;
 public partial class Form1 : Form
 {
 
-    private ComboBox comboBoxForm;
+    private ComboBox comboBoxFrom;
     private ComboBox comboBoxTo;
     private TextBox textBoxAmount;
     private Button btnConvert;
@@ -87,12 +87,70 @@ public partial class Form1 : Form
     {
         foreach (var currency in currencies)
         {
-            comboBoxForm.Items.Add($"{currency.Key} - {currency.Value}");
+            comboBoxFrom.Items.Add($"{currency.Key} - {currency.Value}");
             comboBoxTo.Items.Add($"{currency.Key} - {currency.Value}");
         }
 
-        comboBoxForm.SelectedIndex = 0;
+        comboBoxFrom.SelectedIndex = 0;
         comboBoxTo.SelectedIndex = 1;
+    }
+
+    private async void btnConvert_Click(object sender, EventArgs e)
+    {
+        if (!double.TryParse(textBoxAmount.Text, out double amount) || amount <= 0)
+        {
+            MessageBox.Show("Please enter a valid amount", "Error");
+            return;
+        }   
+
+        string fromCurrency = comboBoxFrom.SelectedItem.ToString().Substring(0, 3);
+        string toCurrency = comboBoxTo.SelectedItem.ToString().Substring(0, 3);
+
+        try
+        {
+            btnConvert.Enabled = false;
+            double exchangeRate = await GetExchangeRate(fromCurrency, toCurrency);
+            double convertedAmount = amount * exchangeRate;
+            labelResult.Text = $"{amount:N2} {fromCurrency} = {convertedAmount:N2} {toCurrency}";
+
+        }
+
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Error: {ex.Message}", "Conversion Error!");
+        }
+        finally
+        {
+            btnConvert.Enabled = true;
+        }
+    }
+
+    private async Task<double> GetExchangeRate(string fromCurrency, string toCurrency)
+    {
+        
+        string apiUrl = $"https://api.exchangerate-api.com/v4/latest/{fromCurrency}";
+
+        using  (HttpClient client = new HttpClient())
+        {
+            HttpResponseMessage response = await client.GetAsync(apiUrl);
+            response.EnsureSuccessStatusCode();
+
+            string jsonString = await response.Content.ReadAsStringAsync();
+
+            using JsonDocument doc = JsonDocument.Parse(jsonString);
+            JsonElement root = doc.RootElement;
+            JsonElement rates = root.GetProperty("rates");
+
+            if(rates.TryGetProperty(toCurrency, out JsonElement rateElement))
+            {
+                return rateElement.GetDouble();
+            }
+
+            else
+            {
+                throw new Exception($"Exchange rate for {toCurrency} not found");
+            }
+        }
     }
 
 }
