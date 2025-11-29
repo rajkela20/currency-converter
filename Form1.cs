@@ -82,4 +82,17 @@ public partial class Form1 : Form
         this.Controls.Add(labelResult);
 
     }
+
+    private void InitializeCurrencies()
+    {
+        foreach (var currency in currencies)
+        {
+            comboBoxForm.Items.Add($"{currency.Key} - {currency.Value}");
+            comboBoxTo.Items.Add($"{currency.Key} - {currency.Value}");
+        }
+
+        comboBoxForm.SelectedIndex = 0;
+        comboBoxTo.SelectedIndex = 1;
+    }
+
 }
