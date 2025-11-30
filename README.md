@@ -1,4 +1,5 @@
-# Simple convercy converter in C#
+# Simple currency converter in C#
+
 
 
 
