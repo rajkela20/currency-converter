@@ -1,1 +1,4 @@
-# fck em hooooooossssss
+# Simple convercy converter in C#
+
+
+
